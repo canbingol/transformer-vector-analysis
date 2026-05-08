@@ -28,7 +28,7 @@ def create_token_file(tokenizer_id: str):
     ):
         token_list = []
 
-        for text in split_dataset["text"]:
+        for text in tqdm(split_dataset["text"], desc=f"Processing {name} dataset"):
             tokens = tokenizer.encode(
                 text,
                 add_special_tokens=False
