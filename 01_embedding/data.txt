@@ -1,0 +1,85 @@
+The king and the queen live in the royal palace.
+The prince and the princess are members of the royal family.
+A king wears a crown and rules a kingdom.
+A queen sits on the throne and represents royal power.
+A prince is a young man in a royal family.
+A princess is a young woman in a royal family.
+The king and the queen sit on the throne.
+The prince is the son of the king.
+The princess is the daughter of the queen.
+The royal family lives in a large palace.
+The crown is a symbol of royal authority.
+The throne belongs to the king and the queen.
+A kingdom is ruled by a king or a queen.
+The royal palace is the home of the royal family.
+The prince and the princess grew up in the palace.
+The king, queen, prince, and princess belong to the same royal family.
+
+A cat and a dog are common pets.
+A dog is an animal that often lives with humans.
+A cat is a pet animal that lives at home.
+A wolf and a fox are wild animals.
+The wolf lives in the forest.
+The fox is a wild animal found in nature.
+A dog is a friendly pet.
+A cat is a quiet pet.
+Pets often live inside a home.
+Dogs and cats are domestic animals.
+Wolves and foxes are not common pets.
+A wolf is a wild animal.
+A fox is a wild animal.
+Wild animals often live in the forest.
+A dog is related to a wolf.
+A fox is similar to a wolf.
+A cat, dog, fox, and wolf are animals.
+Domestic animals live with humans.
+Wild animals live in nature.
+The forest is home to many wild animals.
+
+Paris is the capital city of France.
+Rome is the capital city of Italy.
+France and Italy are countries in Europe.
+Paris and Rome are famous European cities.
+A country has cities, people, and culture.
+A capital city is usually important for a country.
+France is a European country.
+Italy is a European country.
+Paris is a city in France.
+Rome is a city in Italy.
+Paris is the capital of France.
+Rome is the capital of Italy.
+France has many cities.
+Italy has many cities.
+European countries have historic cities.
+Paris and Rome are historic cities.
+A capital city often represents a country.
+France and Italy are located in Europe.
+Europe contains many countries and cities.
+A city can be the political center of a country.
+Paris is associated with France.
+Rome is associated with Italy.
+
+Machine learning models learn from data.
+A neural network is trained using data.
+A transformer is a neural network architecture.
+The transformer model uses attention.
+A computer can train a machine learning model.
+Training changes the parameters of a model.
+A model learns patterns from data.
+Machine learning uses data to improve predictions.
+A neural network contains layers and parameters.
+Training updates the parameters of a neural network.
+A transformer uses attention to mix token representations.
+Attention helps a model focus on relevant tokens.
+Data is used to optimize a model.
+A computer runs the training process.
+Machine learning models are trained on large datasets.
+A transformer is often used in language models.
+Language models predict tokens from context.
+A model represents words as vectors.
+Training changes the vector representations inside the model.
+A neural network transforms input vectors into output vectors.
+The transformer architecture is important in modern language models.
+Attention is a core mechanism in transformer models.
+A trained model can learn useful patterns from text.
+Machine learning, data, training, and models are closely related.
