@@ -12,38 +12,43 @@ from transformers import AutoTokenizer
 DATASET_ID = "roneneldan/TinyStories"
 
 def create_token_file(tokenizer_id: str):
-    tokenizer = AutoTokenizer.from_pretrained(tokenizer_id)
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer_id, use_fast=True)
     tokenizer.model_max_length = int(1e9)
 
     dataset = load_dataset(DATASET_ID)
 
-    train_dataset = dataset["train"].select(range(2000000))
+    train_dataset = dataset["train"]
     val_dataset = dataset["validation"].select(range(2500))
 
     eos_token_id = tokenizer.eos_token_id
+    batch_size = 512
 
     for split_dataset, name in zip(
         [train_dataset, val_dataset],
         ["train", "validation"]
     ):
-        token_list = []
+        file_path = f"data/{name}.bin"
+        with open(file_path, "wb") as out_file:
+            for start_idx in tqdm(
+                range(0, len(split_dataset), batch_size),
+                desc=f"Processing {name} dataset"
+            ):
+                batch_texts = split_dataset["text"][start_idx:start_idx + batch_size]
+                batch_tokens = tokenizer(
+                    batch_texts,
+                    add_special_tokens=False,
+                    return_attention_mask=False,
+                    return_token_type_ids=False
+                )["input_ids"]
 
-        for text in tqdm(split_dataset["text"], desc=f"Processing {name} dataset"):
-            tokens = tokenizer.encode(
-                text,
-                add_special_tokens=False
-            )
+                for tokens in batch_tokens:
+                    if eos_token_id is not None:
+                        tokens.append(eos_token_id)
+                    np.array(tokens, dtype=np.uint16).tofile(out_file)
 
-            token_list.extend(tokens)
-
-            if eos_token_id is not None:
-                token_list.append(eos_token_id)
-
-        token_array = np.array(token_list, dtype=np.uint32)
-        token_array.tofile(f"data/{name}.bin")
-
+        token_count = os.path.getsize(file_path) // 2
         print(f"{name}.bin saved")
-        print(f"Number of tokens: {len(token_array)}", end="\n--------------------\n")
+        print(f"Number of tokens: {token_count}", end="\n--------------------\n")
 
 
 def prepare_pretrain_data(batch_size, max_seq_len=128, pad_token=0, shuffle=False, drop_last=True, num_workers=0, pin_memory=True):
