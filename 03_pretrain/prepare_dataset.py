@@ -17,6 +17,8 @@ def create_token_file(tokenizer_id: str):
 
     dataset = load_dataset(DATASET_ID)
 
+    os.makedirs("data", exist_ok=True)
+
     train_dataset = dataset["train"]
     val_dataset = dataset["validation"].select(range(2500))
 
