@@ -21,7 +21,7 @@ def count_parameters(model):
 
     return total_params, trainable_params
 
-def estimate_loss(model, val_loader, device, max_batches=1000):
+def estimate_loss(model, val_loader, device, max_batches=500):
     model.eval()
     losses = []
 
@@ -80,8 +80,8 @@ def trainer(model: DecoderModel = model, num_epoch: int = 1, lr: float = 3e-4, m
         f.write("step,Loss\n")
 
     # Calculate initial validation loss and save initial model
-    _, val_loader_init = prepare_pretrain_data(batch_size=4)
-    initial_val_loss = estimate_loss(model, val_loader_init, device, max_batches=len(val_loader_init))
+    train_loader, val_loader = prepare_pretrain_data(batch_size=180)
+    initial_val_loss = estimate_loss(model, val_loader, device, max_batches=len(val_loader))
     print(f"Initial model Full Val Loss: {initial_val_loss}")
 
 
@@ -109,11 +109,8 @@ def trainer(model: DecoderModel = model, num_epoch: int = 1, lr: float = 3e-4, m
     step = -1
 
     for epoch in range(num_epoch):
-        train_loader, val_loader = prepare_pretrain_data(batch_size=4)
         model.train()
 
-        # Limit train_loader to 1000 samples for testing
-        train_loader = list(train_loader)[:1000]
 
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
             optimizer,
@@ -143,7 +140,7 @@ def trainer(model: DecoderModel = model, num_epoch: int = 1, lr: float = 3e-4, m
             with open("losses/train_losses.txt", "a") as f:
                 f.write(f"{step},{loss.item()}\n")
 
-            if step % 250 == 0:
+            if step % 1000 == 0:
                 val_loss = estimate_loss(model, val_loader, device)
                 val_losses.append(val_loss)
                 print(f"Epoch {epoch + 1} Step: {step} Val Loss {val_loss}")
