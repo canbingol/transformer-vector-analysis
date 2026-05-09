@@ -1,3 +1,4 @@
+import os
 import torch
 from torch.utils.data import Dataset, DataLoader
 from transformers import AutoTokenizer
@@ -16,6 +17,7 @@ def prepare_it_data(
     num_workers=0,
     pin_memory=False,
     val_ratio=0.05,
+    cache_dir="cache",
 ):
     tokenizer = AutoTokenizer.from_pretrained("gpt2", use_fast=True)
     tokenizer.model_max_length = int(1e9)
@@ -25,6 +27,11 @@ def prepare_it_data(
 
     pad_token_id = tokenizer.pad_token_id
 
+    os.makedirs(cache_dir, exist_ok=True)
+
+    train_cache_path = os.path.join(cache_dir, f"openhermes_train_seq{max_seq_len}.pt")
+    val_cache_path = os.path.join(cache_dir, f"openhermes_val_seq{max_seq_len}.pt")
+
     dataset = load_dataset(DATASET_ID, split="train")
     dataset = dataset.train_test_split(test_size=val_ratio, seed=42)
 
@@ -32,16 +39,29 @@ def prepare_it_data(
     val_data = dataset["test"]
 
     class InstructionDataset(Dataset):
-        def __init__(self, hf_dataset, max_seq_len):
+        def __init__(self, hf_dataset, max_seq_len, cache_path):
             super().__init__()
+
+            if os.path.exists(cache_path):
+                print(f"Loading cached dataset from: {cache_path}")
+                cached_data = torch.load(cache_path)
+                self.input_ids = cached_data["input_ids"]
+                self.target_ids = cached_data["target_ids"]
+                return
+
+            print(f"Tokenizing dataset and saving to: {cache_path}")
 
             self.input_ids = []
             self.target_ids = []
 
-            skipped_long = 0
+            skipped_long_text = 0
+            skipped_long_tokens = 0
             skipped_invalid = 0
 
-            for conversations in tqdm(hf_dataset["conversations"]):
+            prompts = []
+            answers = []
+
+            for conversations in tqdm(hf_dataset["conversations"], desc="Building prompts"):
                 result = self.convert_conversation(conversations)
 
                 if result is None:
@@ -50,22 +70,39 @@ def prepare_it_data(
 
                 prompt, answer = result
 
-                prompt_ids = tokenizer(
-                    prompt,
-                    add_special_tokens=False
-                )["input_ids"]
+                # Kaba filtre: çok uzun textleri tokenize etmeden önce at.
+                # İngilizce GPT-2 BPE için 1 token yaklaşık 3-5 karakter olabilir.
+                # max_seq_len * 8 güvenli-ish bir kaba sınırdır.
+                if len(prompt) + len(answer) > max_seq_len * 8:
+                    skipped_long_text += 1
+                    continue
 
-                answer_ids = tokenizer(
-                    answer,
-                    add_special_tokens=False
-                )["input_ids"]
+                prompts.append(prompt)
+                answers.append(answer)
 
+            prompt_tokenized = tokenizer(
+                prompts,
+                add_special_tokens=False,
+                truncation=False
+            )["input_ids"]
+
+            answer_tokenized = tokenizer(
+                answers,
+                add_special_tokens=False,
+                truncation=False
+            )["input_ids"]
+
+            for prompt_ids, answer_ids in tqdm(
+                zip(prompt_tokenized, answer_tokenized),
+                total=len(prompt_tokenized),
+                desc="Creating tensors"
+            ):
                 full_ids = prompt_ids + answer_ids
 
-                # input_ids = full_ids[:-1] olduğu için,
-                # input uzunluğu max_seq_len'i geçmemeli.
+                # Kesin filtre: sequence max_seq_len'e sığmıyorsa at.
+                # Truncate yok.
                 if len(full_ids) - 1 > max_seq_len:
-                    skipped_long += 1
+                    skipped_long_tokens += 1
                     continue
 
                 input_ids = full_ids[:-1]
@@ -80,9 +117,18 @@ def prepare_it_data(
                 self.input_ids.append(torch.tensor(input_ids, dtype=torch.long))
                 self.target_ids.append(torch.tensor(target_ids, dtype=torch.long))
 
+            torch.save(
+                {
+                    "input_ids": self.input_ids,
+                    "target_ids": self.target_ids,
+                },
+                cache_path
+            )
+
             print(f"Loaded examples: {len(self.input_ids)}")
-            print(f"Skipped long examples: {skipped_long}")
             print(f"Skipped invalid examples: {skipped_invalid}")
+            print(f"Skipped by rough text length: {skipped_long_text}")
+            print(f"Skipped by token length: {skipped_long_tokens}")
 
         def convert_conversation(self, conversations):
             human_message = None
@@ -91,6 +137,9 @@ def prepare_it_data(
             for message in conversations:
                 role = message.get("from")
                 value = message.get("value")
+
+                if value is None:
+                    continue
 
                 if role == "human" and human_message is None:
                     human_message = value
@@ -120,17 +169,18 @@ def prepare_it_data(
         def __getitem__(self, idx):
             x = self.input_ids[idx]
             y = self.target_ids[idx]
-
             return x, y
 
     train_dataset = InstructionDataset(
         hf_dataset=train_data,
-        max_seq_len=max_seq_len
+        max_seq_len=max_seq_len,
+        cache_path=train_cache_path
     )
 
     val_dataset = InstructionDataset(
         hf_dataset=val_data,
-        max_seq_len=max_seq_len
+        max_seq_len=max_seq_len,
+        cache_path=val_cache_path
     )
 
     train_dataloader = DataLoader(
@@ -158,26 +208,20 @@ if __name__ == "__main__":
 
     train_loader, val_loader, tokenizer = prepare_it_data(
         batch_size=4,
-        max_seq_len=128,
+        max_seq_len=256,
         shuffle=True,
         drop_last=True,
         num_workers=0,
-        pin_memory=False
+        pin_memory=False,
+        cache_dir="cache"
     )
-
-    print(f"len train loader: {train_loader}")
-    print(f"len val loader: {val_loader}")
+    print(f"len trian loader: {len(train_loader)}")
+    print(f"len val loader: {len(val_loader)}")
 
     x, y = next(iter(train_loader))
 
     print("Input shape :", x.shape)
     print("Target shape:", y.shape)
-
-    print("\nInput ids:")
-    print(x[0])
-
-    print("\nTarget ids:")
-    print(y[0])
 
     decoded_input = tokenizer.decode(x[0], skip_special_tokens=False)
 
