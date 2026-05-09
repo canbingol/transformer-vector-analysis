@@ -123,7 +123,6 @@ class DecoderModel(nn.Module):
         self.to(self.device)
 
     def forward(self, x:torch.Tensor):
-        x = x.to(self.device)
         h = self.embedding(x)
 
         for layer in self.layers:

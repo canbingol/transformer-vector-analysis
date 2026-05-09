@@ -89,7 +89,7 @@ def trainer(model: DecoderModel = model, num_epoch: int = 1, lr: float = 3e-4, m
     torch.save(
         {
             "model_state_dict": model.state_dict(),
-            "config": config,
+            "config": config.__dict__,
             "epoch": 0,
             "step": -1,
             "final_train_loss": None,
@@ -156,7 +156,7 @@ def trainer(model: DecoderModel = model, num_epoch: int = 1, lr: float = 3e-4, m
     torch.save(
         {
             "model_state_dict": model.state_dict(),
-            "config": config,
+            "config": config.__dict__,
             "epoch": epoch,
             "step": step,
             "final_train_loss": train_losses[-1] if len(train_losses) > 0 else None,
