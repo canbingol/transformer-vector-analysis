@@ -71,13 +71,14 @@ def trainer(model: DecoderModel = model, num_epoch: int = 1, lr: float = 3e-4, m
     print(f"Device: {device}")
     # Create losses directory if it doesn't exist
     os.makedirs("losses", exist_ok=True)
-    os.makedirs("checkpoints", exist_ok=True)
+    checkpoints_dir = os.path.join(os.path.dirname(__file__), "..", "checkpoints")
+    os.makedirs(checkpoints_dir, exist_ok=True)
 
     # Initialize CSV files with headers
     with open("losses/train_losses.txt", "w") as f:
-        f.write("step,Loss\n")
+        f.write("step,loss\n")
     with open("losses/val_losses.txt", "w") as f:
-        f.write("step,Loss\n")
+        f.write("step,loss\n")
 
     # Calculate initial validation loss and save initial model
     train_loader, val_loader = prepare_pretrain_data(batch_size=180)
@@ -95,9 +96,9 @@ def trainer(model: DecoderModel = model, num_epoch: int = 1, lr: float = 3e-4, m
             "final_train_loss": None,
             "final_val_loss": initial_val_loss,
         },
-        "checkpoints/random_decoder.pt"
+        os.path.join(checkpoints_dir, "random_decoder.pt")
     )
-    print("Initial model saved as checkpoints/random_decoder.pt")
+    print(f"Initial model saved as {os.path.join(checkpoints_dir, 'random_decoder.pt')}")
 
     optimizer = torch.optim.AdamW(
         model.parameters(),
@@ -162,9 +163,9 @@ def trainer(model: DecoderModel = model, num_epoch: int = 1, lr: float = 3e-4, m
             "final_train_loss": train_losses[-1] if len(train_losses) > 0 else None,
             "final_val_loss": final_val_loss,
         },
-        "checkpoints/pretrained_decoder.pt"
+        os.path.join(checkpoints_dir, "pretrained_decoder.pt")
     )
-    print("Trained model saved as checkpoints/pretrained_decoder.pt")
+    print(f"Trained model saved as {os.path.join(checkpoints_dir, 'pretrained_decoder.pt')}")
 
 if __name__ == "__main__":
     trainer()

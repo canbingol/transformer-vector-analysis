@@ -2,9 +2,10 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from transformers import AutoTokenizer
 from datasets import load_dataset
+from tqdm import tqdm
 
 
-DATASET_ID = "tatsu-lab/alpaca"
+DATASET_ID = "teknium/OpenHermes-2.5"
 
 
 def prepare_it_data(
@@ -37,8 +38,17 @@ def prepare_it_data(
             self.input_ids = []
             self.target_ids = []
 
-            for text in hf_dataset["text"]:
-                prompt, answer = self.convert_text(text)
+            skipped_long = 0
+            skipped_invalid = 0
+
+            for conversations in tqdm(hf_dataset["conversations"]):
+                result = self.convert_conversation(conversations)
+
+                if result is None:
+                    skipped_invalid += 1
+                    continue
+
+                prompt, answer = result
 
                 prompt_ids = tokenizer(
                     prompt,
@@ -52,11 +62,14 @@ def prepare_it_data(
 
                 full_ids = prompt_ids + answer_ids
 
+                # input_ids = full_ids[:-1] olduğu için,
+                # input uzunluğu max_seq_len'i geçmemeli.
+                if len(full_ids) - 1 > max_seq_len:
+                    skipped_long += 1
+                    continue
+
                 input_ids = full_ids[:-1]
                 target_ids = [-100] * (len(prompt_ids) - 1) + answer_ids
-
-                input_ids = input_ids[:max_seq_len]
-                target_ids = target_ids[:max_seq_len]
 
                 if len(input_ids) < max_seq_len:
                     pad_len = max_seq_len - len(input_ids)
@@ -67,33 +80,37 @@ def prepare_it_data(
                 self.input_ids.append(torch.tensor(input_ids, dtype=torch.long))
                 self.target_ids.append(torch.tensor(target_ids, dtype=torch.long))
 
-        def convert_text(self, text):
-            instruction_block = text.split("### Instruction:")[1].split("### Response:")[0].strip()
-            response_part = text.split("### Response:")[1].strip()
+            print(f"Loaded examples: {len(self.input_ids)}")
+            print(f"Skipped long examples: {skipped_long}")
+            print(f"Skipped invalid examples: {skipped_invalid}")
 
-            if "### Input:" in instruction_block:
-                instruction_part = instruction_block.split("### Input:")[0].strip()
-                input_part = instruction_block.split("### Input:")[1].strip()
+        def convert_conversation(self, conversations):
+            human_message = None
+            assistant_message = None
 
-                prompt = (
-                    "System:\n"
-                    "You are a helpful assistant.\n\n"
-                    "Instruction:\n"
-                    f"{instruction_part}\n\n"
-                    "Input:\n"
-                    f"{input_part}\n\n"
-                    "Response:\n"
-                )
-            else:
-                prompt = (
-                    "System:\n"
-                    "You are a helpful assistant.\n\n"
-                    "Instruction:\n"
-                    f"{instruction_block}\n\n"
-                    "Response:\n"
-                )
+            for message in conversations:
+                role = message.get("from")
+                value = message.get("value")
 
-            answer = response_part + tokenizer.eos_token
+                if role == "human" and human_message is None:
+                    human_message = value
+
+                elif role == "gpt" and human_message is not None:
+                    assistant_message = value
+                    break
+
+            if human_message is None or assistant_message is None:
+                return None
+
+            prompt = (
+                "System:\n"
+                "You are a helpful assistant.\n\n"
+                "User:\n"
+                f"{human_message.strip()}\n\n"
+                "Assistant:\n"
+            )
+
+            answer = assistant_message.strip() + tokenizer.eos_token
 
             return prompt, answer
 
@@ -134,7 +151,7 @@ def prepare_it_data(
         pin_memory=pin_memory
     )
 
-    return train_dataloader, val_dataloader
+    return train_dataloader, val_dataloader, tokenizer
 
 
 if __name__ == "__main__":
@@ -147,6 +164,9 @@ if __name__ == "__main__":
         num_workers=0,
         pin_memory=False
     )
+
+    print(f"len train loader: {train_loader}")
+    print(f"len val loader: {val_loader}")
 
     x, y = next(iter(train_loader))
 

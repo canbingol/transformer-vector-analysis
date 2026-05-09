@@ -84,9 +84,9 @@ def trainer(model: DecoderModel = model, num_epoch: int = 2, lr: float = 3e-4, m
 
     # Initialize CSV files with headers
     with open("losses/train_losses.txt", "w") as f:
-        f.write("step,loss\n")
+        f.write("global_step,loss\n")
     with open("losses/val_losses.txt", "w") as f:
-        f.write("step,loss\n")
+        f.write("global_step,loss\n")
 
     train_loader, val_loader = prepare_it_data(batch_size=8)
 
@@ -100,7 +100,7 @@ def trainer(model: DecoderModel = model, num_epoch: int = 2, lr: float = 3e-4, m
     )
 
     train_losses, val_losses = [], []
-    step = -1
+    global_step = 0
 
     for epoch in range(num_epoch):
         model.train()
@@ -120,7 +120,7 @@ def trainer(model: DecoderModel = model, num_epoch: int = 2, lr: float = 3e-4, m
             loss = calculate_loss(model, input_batch, target_batch, device)
             loss.backward()
             train_losses.append(loss.item())
-            step += 1
+            global_step += 1
             is_last_step = (batch_idx == len(train_loader) - 1)
 
             optimizer.step()
@@ -132,19 +132,19 @@ def trainer(model: DecoderModel = model, num_epoch: int = 2, lr: float = 3e-4, m
 
             # Save train loss to file
             with open("losses/train_losses.txt", "a") as f:
-                f.write(f"{step},{loss.item()}\n")
+                f.write(f"{global_step},{loss.item()}\n")
 
-            if step % 500 == 0:
+            if global_step % 500 == 0:
                 val_loss = estimate_loss(model, val_loader, device)
                 val_losses.append(val_loss)
-                print(f"Epoch {epoch + 1} Step: {step} Val Loss {val_loss}")
+                print(f"Epoch {epoch + 1} Global Step: {global_step} Val Loss {val_loss}")
                 # Save val loss to file
                 with open("losses/val_losses.txt", "a") as f:
-                    f.write(f"{step},{val_loss}\n")
+                    f.write(f"{global_step},{val_loss}\n")
             
     model.eval()
     val_loss = estimate_loss(model, val_loader, device, max_batches=len(val_loader))
-    print(f"Epoch {epoch + 1} Step: {step} Full Val Loss {val_loss}")
+    print(f"Epoch {epoch + 1} Global Step: {global_step} Full Val Loss {val_loss}")
     final_val_loss = val_loss
 
     torch.save(
@@ -152,7 +152,7 @@ def trainer(model: DecoderModel = model, num_epoch: int = 2, lr: float = 3e-4, m
             "model_state_dict": model.state_dict(),
             "config": config.__dict__,
             "epoch": epoch,
-            "step": step,
+            "step": global_step,
             "final_train_loss": train_losses[-1] if len(train_losses) > 0 else None,
             "final_val_loss": final_val_loss,
         },
