@@ -31,12 +31,15 @@ def count_parameters(model):
 
     return total_params, trainable_params
 
-def estimate_loss(model, val_loader, device):
+def estimate_loss(model, val_loader, device, max_batches=500):
     model.eval()
     losses = []
 
     with torch.no_grad():
         for i, (x, y) in enumerate(val_loader):
+            if i >= max_batches:
+                break
+
             x = x.to(device)
             y = y.to(device)
 
@@ -143,10 +146,8 @@ def trainer(model: DecoderModel = model, num_epoch: int = 2, lr: float = 3e-4, m
                     f.write(f"{global_step},{val_loss}\n")
             
     model.eval()
-    val_loss = estimate_loss(model, val_loader, device, max_batches=len(val_loader))
-    print(f"Epoch {epoch + 1} Global Step: {global_step} Full Val Loss {val_loss}")
-    final_val_loss = val_loss
-
+    final_val_loss = estimate_loss(model, val_loader, device, max_batches=len(val_loader))
+    print(f"Full Val Loss {final_val_loss}")
     torch.save(
         {
             "model_state_dict": model.state_dict(),
