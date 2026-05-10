@@ -1,0 +1,67 @@
+[
+    {
+        "id": 0,
+        "input_message": "Who are you?",
+        "pretrained": {
+            "input_format": "raw_message",
+            "output": "Who are you? You are not supposed to be your friend. You are not nice. You are my friend. You are my friend. You are my friend. You are my friend. You are my friend. You are my friend. You are my friend. You are my friend. You are my friend. You are my friend."
+        },
+        "finetuned": {
+            "input_format": "instruction_prompt",
+            "prompt": "System:\nYou are a helpful assistant.\n\nUser:\nWho are you?\n\nAssistant:\n",
+            "output": "System:\nYou are a helpful assistant.\n\nUser:\nWho are you?\n\nAssistant:\nWhat are you doing in the world?"
+        }
+    },
+    {
+        "id": 1,
+        "input_message": "What can you do?",
+        "pretrained": {
+            "input_format": "raw_message",
+            "output": "What can you do?â€\n\nThe little girl was so excited. She asked her mom, â€œWhat is it?â€\n\nHer mom smiled and said, â€œItâ€™s a surprise.â€\n\nThe little girl was so excited. She ran to the kitchen"
+        },
+        "finetuned": {
+            "input_format": "instruction_prompt",
+            "prompt": "System:\nYou are a helpful assistant.\n\nUser:\nWhat can you do?\n\nAssistant:\n",
+            "output": "System:\nYou are a helpful assistant.\n\nUser:\nWhat can you do?\n\nAssistant:\nA good way to make a difference in a way to make a better choice. It can be a great way to make a better choice for your time and make sure you are working together."
+        }
+    },
+    {
+        "id": 2,
+        "input_message": "Explain what artificial intelligence is.",
+        "pretrained": {
+            "input_format": "raw_message",
+            "output": "Explain what artificial intelligence is. She says, \"I am sorry, Tom. I am sorry, I did not mean to make you mad. I was wrong. I was wrong. I should have listened to you. I should have listened to you. I should have listened to you. I should have listened to you. I should have listened to"
+        },
+        "finetuned": {
+            "input_format": "instruction_prompt",
+            "prompt": "System:\nYou are a helpful assistant.\n\nUser:\nExplain what artificial intelligence is.\n\nAssistant:\n",
+            "output": "System:\nYou are a helpful assistant.\n\nUser:\nExplain what artificial intelligence is.\n\nAssistant:\nThe most important part of the environment is important for the environment. It is important to be aware of the environment and the environment. It is important to be aware of the environment and the environment. It is important to be aware of the environment and the environment. It is important to be aware of the environment and the environment"
+        }
+    },
+    {
+        "id": 3,
+        "input_message": "Write a short story about a robot.",
+        "pretrained": {
+            "input_format": "raw_message",
+            "output": "Write a short story about a robot.\n\n\"I'm sorry, Lily. I didn't mean to break the robot. I just wanted to play with you. I didn't know what to do. I'm sorry, Lily. I was wrong. I should have listened to you. I should have listened to you. I should have listened to you"
+        },
+        "finetuned": {
+            "input_format": "instruction_prompt",
+            "prompt": "System:\nYou are a helpful assistant.\n\nUser:\nWrite a short story about a robot.\n\nAssistant:\n",
+            "output": "System:\nYou are a helpful assistant.\n\nUser:\nWrite a short story about a robot.\n\nAssistant:\nA robot was a robot, but it was a robot. It was a robot, but it was a robot. It was a robot, but it was a robot. It was a robot who had been living in the robot. It was a robot, but it was a robot. It was a robot who had been"
+        }
+    },
+    {
+        "id": 4,
+        "input_message": "How can I learn deep learning?",
+        "pretrained": {
+            "input_format": "raw_message",
+            "output": "How can I learn deep learning?â€\n\nThe little girl was so excited. She asked her mom if she could go to the store. Her mom said yes, and they went to the store.\n\nWhen they got there, the little girl was so excited. She ran to the store and bought some new toys. She was so happy"
+        },
+        "finetuned": {
+            "input_format": "instruction_prompt",
+            "prompt": "System:\nYou are a helpful assistant.\n\nUser:\nHow can I learn deep learning?\n\nAssistant:\n",
+            "output": "System:\nYou are a helpful assistant.\n\nUser:\nHow can I learn deep learning?\n\nAssistant:\nA good idea to learn new language is to learn from new language. It can be used to understand and understand the language. It can be used to understand and understand the language. It can be used to understand and understand the language."
+        }
+    }
+]
